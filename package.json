@@ -1,0 +1,23 @@
+{
+  "name": "screencapturekit-node",
+  "version": "0.0.1",
+  "description": "A nodejs wrapper over a swift CLI program which is a wrapper over ScreenCaptureKit module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mukeshsoni/screencapturekit-node.git"
+  },
+  "keywords": [
+    "screen-recording",
+    "screencapturekit"
+  ],
+  "author": "Mukesh Soni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mukeshsoni/screencapturekit-node/issues"
+  },
+  "homepage": "https://github.com/mukeshsoni/screencapturekit-node#readme"
+}
