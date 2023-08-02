@@ -1,11 +1,11 @@
 {
-  "name": "screencapturekit-node",
+  "name": "screencapturekit",
   "version": "0.0.1",
   "description": "A nodejs wrapper over a swift CLI program which is a wrapper over ScreenCaptureKit module",
   "main": "index.js",
   "scripts": {
     "test": "ava",
-    "build": "swift build --configuration=release --arch arm64 --arch x86_64 && mv .build/apple/Products/Release/screencapturekit-cli .",
+    "build": "swift build --configuration=release --arch arm64 --arch x86_64 && mv .build/apple/Products/Release/screencapturekit .",
     "prepublish": "npm run build"
   },
   "files": [

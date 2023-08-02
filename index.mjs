@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const getRandomId = () => Math.random().toString(36).slice(2, 15);
 // Workaround for https://github.com/electron/electron/issues/9459
 // const BIN = path.join(fixPathForAsarUnpack(__dirname), "aperture");
-const BIN = path.join(__dirname, "screencapturekit-cli");
+const BIN = path.join(__dirname, "screencapturekit");
 
 const supportsHevcHardwareEncoding = (() => {
   const cpuModel = os.cpus()[0].model;
