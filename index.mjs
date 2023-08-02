@@ -185,7 +185,7 @@ function getCodecs() {
 }
 
 export const screens = async () => {
-  const { stderr } = await execa(BIN, ["list"]);
+  const { stderr } = await execa(BIN, ["list", "screens"]);
 
   try {
     return JSON.parse(stderr);

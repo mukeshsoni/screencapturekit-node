@@ -8,6 +8,11 @@
     "build": "swift build --configuration=release --arch arm64 --arch x86_64 && mv .build/apple/Products/Release/screencapturekit-cli .",
     "prepublish": "npm run build"
   },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "screencapturekit-cli"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mukeshsoni/screencapturekit-node.git"
