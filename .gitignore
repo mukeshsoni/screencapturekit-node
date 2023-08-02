@@ -9,4 +9,4 @@ DerivedData/
 .netrc
 recording*
 node_modules
-screencapturekit-cli
+screencapturekit
