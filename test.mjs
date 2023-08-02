@@ -3,7 +3,7 @@ import test from "ava";
 import delay from "delay";
 import { readChunkSync } from "read-chunk";
 import { fileTypeFromBuffer } from "file-type";
-import sck, { videoCodecs } from "./index.mjs";
+import sck, { videoCodecs, screens } from "./index.mjs";
 
 test("returns available codecs", (t) => {
   console.log("Video codecs", videoCodecs);
@@ -25,4 +25,10 @@ test("records screen", async (t) => {
   t.is(fileInfo.ext, "mov");
   // if any assertion after file creation fails, the file is not deleted and remains there forever
   fs.unlinkSync(videoPath);
+});
+
+test("List of screens", async (t) => {
+  const screenList = await screens();
+  console.log({ screenList });
+  t.true(screenList.length > 0);
 });

@@ -25,62 +25,85 @@ struct Options: Decodable {
 
 @main
 struct ScreenCaptureKitCLI: AsyncParsableCommand {
-    @Argument(help: "Stringified JSON object with options passed to ScreenCaptureKit-cli")
-    var options: String
+    static var configuration = CommandConfiguration(
+        abstract: "Wrapper around ScreenCaptureKit",
+        subcommands: [List.self, Record.self],
+        defaultSubcommand: Record.self
+    )
+}
 
-    mutating func run() async throws {
-        var keepRunning = true
-        let options: Options = try options.jsonDecoded()
-
-        print(options)
-        // Create a screen recording
-        do {
-            // Check for screen recording permission, make sure your terminal has screen recording permission
-            guard CGPreflightScreenCaptureAccess() else {
-                throw RecordingError("No screen capture permission")
+extension ScreenCaptureKitCLI {
+    struct List: AsyncParsableCommand {
+        mutating func run() async throws {
+            let sharableContent = try await SCShareableContent.current
+            print(sharableContent.displays.count, sharableContent.windows.count, sharableContent.applications.count)
+            let appNames = sharableContent.applications.map {
+                app in
+                ["name": app.applicationName, "process_id": app.processID, "bundle_identifier": app.bundleIdentifier]
             }
+            try print(toJson(appNames), to: .standardError)
+        }
+    }
+}
 
-            //    let cropRect = CGRect(x: 0, y: 0, width: 960, height: 540)
-            let screenRecorder = try await ScreenRecorder(url: options.destination, displayID: CGMainDisplayID(), cropRect: nil)
-            print("Starting screen recording of main display")
-            try await screenRecorder.start()
+extension ScreenCaptureKitCLI {
+    struct Record: AsyncParsableCommand {
+        @Argument(help: "Stringified JSON object with options passed to ScreenCaptureKit-cli")
+        var options: String
 
-            // Super duper hacky way to keep waiting for user's kill signal.
-            // I have no idea if i am doing it right
-            signal(SIGKILL, SIG_IGN)
-            signal(SIGINT, SIG_IGN)
-            signal(SIGTERM, SIG_IGN)
-            let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-            sigintSrc.setEventHandler {
-                print("Got SIGINT")
-                keepRunning = false
-            }
-            sigintSrc.resume()
-            let sigKillSrc = DispatchSource.makeSignalSource(signal: SIGKILL, queue: .main)
-            sigKillSrc.setEventHandler {
-                print("Got SIGKILL")
-                keepRunning = false
-            }
-            sigKillSrc.resume()
-            let sigTermSrc = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
-            sigTermSrc.setEventHandler {
-                print("Got SIGTERM")
-                keepRunning = false
-            }
-            sigTermSrc.resume()
+        mutating func run() async throws {
+            var keepRunning = true
+            let options: Options = try options.jsonDecoded()
 
-            // Keep looping and checking every 1 second if the user pressed the kill switch
-            while true {
-                if !keepRunning {
-                    try await screenRecorder.stop()
-                    print("We are done. Have saved the recording to a file.")
-                    break
-                } else {
-                    sleep(1)
+            print(options)
+            // Create a screen recording
+            do {
+                // Check for screen recording permission, make sure your terminal has screen recording permission
+                guard CGPreflightScreenCaptureAccess() else {
+                    throw RecordingError("No screen capture permission")
                 }
+
+                let screenRecorder = try await ScreenRecorder(url: options.destination, displayID: CGMainDisplayID(), cropRect: options.cropRect)
+                print("Starting screen recording of main display")
+                try await screenRecorder.start()
+
+                // Super duper hacky way to keep waiting for user's kill signal.
+                // I have no idea if i am doing it right
+                signal(SIGKILL, SIG_IGN)
+                signal(SIGINT, SIG_IGN)
+                signal(SIGTERM, SIG_IGN)
+                let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+                sigintSrc.setEventHandler {
+                    print("Got SIGINT")
+                    keepRunning = false
+                }
+                sigintSrc.resume()
+                let sigKillSrc = DispatchSource.makeSignalSource(signal: SIGKILL, queue: .main)
+                sigKillSrc.setEventHandler {
+                    print("Got SIGKILL")
+                    keepRunning = false
+                }
+                sigKillSrc.resume()
+                let sigTermSrc = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+                sigTermSrc.setEventHandler {
+                    print("Got SIGTERM")
+                    keepRunning = false
+                }
+                sigTermSrc.resume()
+
+                // Keep looping and checking every 1 second if the user pressed the kill switch
+                while true {
+                    if !keepRunning {
+                        try await screenRecorder.stop()
+                        print("We are done. Have saved the recording to a file.")
+                        break
+                    } else {
+                        sleep(1)
+                    }
+                }
+            } catch {
+                print("Error during recording:", error)
             }
-        } catch {
-            print("Error during recording:", error)
         }
     }
 }
@@ -151,6 +174,9 @@ struct ScreenRecorder {
         // Create a filter for the specified display
         let sharableContent = try await SCShareableContent.current
         print(sharableContent.displays.count, sharableContent.windows.count, sharableContent.applications.count)
+        let appNames = sharableContent.applications.map { app in app.applicationName }
+        print(appNames)
+
         guard let display = sharableContent.displays.first(where: { $0.displayID == displayID }) else {
             throw RecordingError("Can't find display with ID \(displayID) in sharable content")
         }

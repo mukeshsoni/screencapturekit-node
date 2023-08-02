@@ -65,7 +65,6 @@ class ScreenCaptureKit {
       }
 
       this.videoPath = temporaryFile({ extension: "mp4" });
-
       const recorderOptions = {
         destination: fileUrl(this.videoPath),
         framesPerSecond: fps,
@@ -75,14 +74,81 @@ class ScreenCaptureKit {
         audioDeviceId,
       };
 
+      if (highlightClicks === true) {
+        showCursor = true;
+      }
+
+      if (
+        typeof cropArea === "object" &&
+        (typeof cropArea.x !== "number" ||
+          typeof cropArea.y !== "number" ||
+          typeof cropArea.width !== "number" ||
+          typeof cropArea.height !== "number")
+      ) {
+        reject(new Error("Invalid `cropArea` option object"));
+        return;
+      }
+
+      if (videoCodec) {
+        if (!videoCodecs.has(videoCodec)) {
+          throw new Error(`Unsupported video codec specified: ${videoCodec}`);
+        }
+
+        recorderOptions.videoCodec = videoCodecs.get(videoCodec);
+      }
+      if (cropArea) {
+        recorderOptions.cropRect = [
+          [cropArea.x, cropArea.y],
+          [cropArea.width, cropArea.height],
+        ];
+      }
+
+      // const timeout = setTimeout(() => {
+      // 	// `.stopRecording()` was called already
+      // 	if (this.recorder === undefined) {
+      // 		return;
+      // 	}
+
+      // 	const error = new Error('Could not start recording within 5 seconds');
+      // 	error.code = 'RECORDER_TIMEOUT';
+      // 	this.recorder.kill();
+      // 	delete this.recorder;
+      // 	reject(error);
+      // }, 5000);
+
+      // (async () => {
+      // 	try {
+      // 		await this.waitForEvent('onStart');
+      // 		clearTimeout(timeout);
+      // 		setTimeout(resolve, 1000);
+      // 	} catch (error) {
+      // 		reject(error);
+      // 	}
+      // })();
+
+      // this.isFileReady = (async () => {
+      // 	await this.waitForEvent('onFileReady');
+      // 	return this.tmpPath;
+      // })();
+
+      const timeout = setTimeout(resolve, 1000);
       this.recorder = execa(BIN, [
-        // "record",
+        "record",
         // "--process-id",
         // this.processId,
         JSON.stringify(recorderOptions),
       ]);
 
-      resolve({});
+      this.recorder.catch((error) => {
+        clearTimeout(timeout);
+        delete this.recorder;
+        reject(error);
+      });
+
+      this.recorder.stdout.setEncoding("utf8");
+      this.recorder.stdout.on("data", (data) => {
+        console.log("From swift executable: ", data);
+      });
     });
   }
 
@@ -117,4 +183,15 @@ function getCodecs() {
 
   return codecs;
 }
+
+export const screens = async () => {
+  const { stderr } = await execa(BIN, ["list"]);
+
+  try {
+    return JSON.parse(stderr);
+  } catch {
+    return stderr;
+  }
+};
+
 export const videoCodecs = getCodecs();
