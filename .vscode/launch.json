@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "name": "Debug screencapturekit-cli",
+      "program": "${workspaceFolder:screencapturekit-node}/.build/debug/screencapturekit-cli",
+      "args": [],
+      "cwd": "${workspaceFolder:screencapturekit-node}",
+      "preLaunchTask": "swift: Build Debug screencapturekit-cli"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "name": "Release screencapturekit-cli",
+      "program": "${workspaceFolder:screencapturekit-node}/.build/release/screencapturekit-cli",
+      "args": [],
+      "cwd": "${workspaceFolder:screencapturekit-node}",
+      "preLaunchTask": "swift: Build Release screencapturekit-cli"
+    }
+  ]
+}

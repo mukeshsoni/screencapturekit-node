@@ -12,10 +12,27 @@ import Foundation
 import CoreGraphics
 import ScreenCaptureKit
 
+struct Options: Decodable {
+    let destination: URL
+    let framesPerSecond: Int
+    let cropRect: CGRect?
+    let showCursor: Bool
+    let highlightClicks: Bool
+    let screenId: CGDirectDisplayID
+    let audioDeviceId: String?
+    let videoCodec: String?
+}
+
 @main
 struct ScreenCaptureKitCLI: AsyncParsableCommand {
+    @Argument(help: "Stringified JSON object with options passed to ScreenCaptureKit-cli")
+    var options: String
+
     mutating func run() async throws {
         var keepRunning = true
+        let options: Options = try options.jsonDecoded()
+
+        print(options)
         // Create a screen recording
         do {
             // Check for screen recording permission, make sure your terminal has screen recording permission
@@ -23,21 +40,35 @@ struct ScreenCaptureKitCLI: AsyncParsableCommand {
                 throw RecordingError("No screen capture permission")
             }
 
-            let url = URL(filePath: FileManager.default.currentDirectoryPath).appending(path: "recording \(Date()).mov")
             //    let cropRect = CGRect(x: 0, y: 0, width: 960, height: 540)
-            let screenRecorder = try await ScreenRecorder(url: url, displayID: CGMainDisplayID(), cropRect: nil)
+            let screenRecorder = try await ScreenRecorder(url: options.destination, displayID: CGMainDisplayID(), cropRect: nil)
             print("Starting screen recording of main display")
             try await screenRecorder.start()
 
             // Super duper hacky way to keep waiting for user's kill signal.
             // I have no idea if i am doing it right
+            signal(SIGKILL, SIG_IGN)
             signal(SIGINT, SIG_IGN)
+            signal(SIGTERM, SIG_IGN)
             let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
             sigintSrc.setEventHandler {
                 print("Got SIGINT")
                 keepRunning = false
             }
             sigintSrc.resume()
+            let sigKillSrc = DispatchSource.makeSignalSource(signal: SIGKILL, queue: .main)
+            sigKillSrc.setEventHandler {
+                print("Got SIGKILL")
+                keepRunning = false
+            }
+            sigKillSrc.resume()
+            let sigTermSrc = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+            sigTermSrc.setEventHandler {
+                print("Got SIGTERM")
+                keepRunning = false
+            }
+            sigTermSrc.resume()
+
             // Keep looping and checking every 1 second if the user pressed the kill switch
             while true {
                 if !keepRunning {
