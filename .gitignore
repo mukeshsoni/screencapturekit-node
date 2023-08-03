@@ -10,3 +10,4 @@ DerivedData/
 recording*
 node_modules
 screencapturekit
+dist

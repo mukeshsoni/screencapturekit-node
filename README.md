@@ -1,13 +1,14 @@
-This project provides a command line interface to Apple's [`ScreenCaptureKit`](https://developer.apple.com/documentation/screencapturekit/).
+This is a nodejs wrapper around Apple's `ScreenCaptureKit` swift module.
 
-## Build
+### Development
 
 ```bash
-swift build
+npm install
+npm run build
 ```
 
-## Run
+### To run tests
+
 ```bash
-swift run
+npm test
 ```
-

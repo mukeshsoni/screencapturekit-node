@@ -2,16 +2,27 @@
   "name": "screencapturekit",
   "version": "0.0.1",
   "description": "A nodejs wrapper over a swift CLI program which is a wrapper over ScreenCaptureKit module",
-  "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "test": "ava",
-    "build": "swift build --configuration=release --arch arm64 --arch x86_64 && mv .build/apple/Products/Release/screencapturekit .",
-    "prepublish": "npm run build"
+    "test": "vitest",
+    "build": "tsup ",
+    "build-swift": "swift build --configuration=release --arch arm64 --arch x86_64 && mv .build/apple/Products/Release/screencapturekit ./dist",
+    "prepublish": "npm run build-swift",
+    "dev": "tsup --watch",
+    "format": "prettier --write .",
+    "semantic-release": "semantic-release"
   },
   "files": [
-    "index.mjs",
-    "index.d.ts",
-    "screencapturekit-cli"
+    "dist/**/*",
+    "LICENSE",
+    "README.md"
   ],
   "repository": {
     "type": "git",
@@ -36,8 +47,13 @@
     "tempy": "^3.1.0"
   },
   "devDependencies": {
-    "ava": "^5.3.1",
+    "@types/node": "^20.4.6",
     "file-type": "^18.5.0",
-    "read-chunk": "^4.0.3"
+    "prettier": "^3.0.0",
+    "read-chunk": "^4.0.3",
+    "semantic-release": "^21.0.7",
+    "tsup": "^7.2.0",
+    "typescript": "^5.1.6",
+    "vitest": "^0.34.1"
   }
 }

@@ -1,11 +1,11 @@
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { temporaryFile } from "tempy";
-import os from "os";
 import { assertMacOSVersionGreaterThanOrEqualTo } from "macos-version";
 import fileUrl from "file-url";
-import path from "path";
 // import { fixPathForAsarUnpack } from "electron-util";
-import { execa } from "execa";
-import { fileURLToPath } from "url";
+import { execa, ExecaChildProcess } from "execa";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const getRandomId = () => Math.random().toString(36).slice(2, 15);
 // Workaround for https://github.com/electron/electron/issues/9459
 // const BIN = path.join(fixPathForAsarUnpack(__dirname), "aperture");
-const BIN = path.join(__dirname, "screencapturekit");
+const BIN = path.join(__dirname, "../dist/screencapturekit");
 
 const supportsHevcHardwareEncoding = (() => {
   const cpuModel = os.cpus()[0].model;
@@ -35,8 +35,38 @@ const supportsHevcHardwareEncoding = (() => {
   return result && Number.parseInt(result[1], 10) >= 6;
 })();
 
+type CropArea = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type RecordingOptions = {
+  fps: number;
+  cropArea?: CropArea;
+  showCursor: boolean;
+  highlightClicks: boolean;
+  screenId: number;
+  audioDeviceId?: number;
+  videoCodec: string;
+};
+
+type RecordingOptionsForScreenCaptureKit = {
+  destination: string;
+  framesPerSecond: number;
+  showCursor: boolean;
+  highlightClicks: boolean;
+  screenId: number;
+  audioDeviceId?: number;
+  videoCodec?: string;
+  cropRect?: [[x: number, y: number], [width: number, height: number]];
+};
+
 class ScreenCaptureKit {
-  videoPath = null;
+  videoPath: string | null = null;
+  recorder?: ExecaChildProcess;
+  processId: string | null = null;
 
   constructor() {
     assertMacOSVersionGreaterThanOrEqualTo("10.13");
@@ -56,7 +86,7 @@ class ScreenCaptureKit {
     screenId = 0,
     audioDeviceId = undefined,
     videoCodec = "h264",
-  } = {}) {
+  }: RecordingOptions = {}) {
     this.processId = getRandomId();
     return new Promise((resolve, reject) => {
       if (this.recorder !== undefined) {
@@ -65,7 +95,7 @@ class ScreenCaptureKit {
       }
 
       this.videoPath = temporaryFile({ extension: "mp4" });
-      const recorderOptions = {
+      const recorderOptions: RecordingOptionsForScreenCaptureKit = {
         destination: fileUrl(this.videoPath),
         framesPerSecond: fps,
         showCursor,
@@ -145,8 +175,8 @@ class ScreenCaptureKit {
         reject(error);
       });
 
-      this.recorder.stdout.setEncoding("utf8");
-      this.recorder.stdout.on("data", (data) => {
+      this.recorder?.stdout?.setEncoding("utf8");
+      this.recorder?.stdout?.on("data", (data) => {
         console.log("From swift executable: ", data);
       });
     });
@@ -155,7 +185,7 @@ class ScreenCaptureKit {
   async stopRecording() {
     this.throwIfNotStarted();
     console.log("killing recorder");
-    this.recorder.kill();
+    this.recorder?.kill();
     await this.recorder;
     console.log("killed recorder");
     delete this.recorder;
