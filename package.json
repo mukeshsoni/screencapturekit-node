@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "vitest",
-    "build": "tsup ",
+    "build": "tsup && npm run build-swift",
     "build-swift": "swift build --configuration=release --arch arm64 --arch x86_64 && mv .build/apple/Products/Release/screencapturekit ./dist",
     "prepublish": "npm run build-swift",
     "dev": "tsup --watch",

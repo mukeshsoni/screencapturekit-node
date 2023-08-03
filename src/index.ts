@@ -1,14 +1,10 @@
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { temporaryFile } from "tempy";
 import { assertMacOSVersionGreaterThanOrEqualTo } from "macos-version";
 import fileUrl from "file-url";
 // import { fixPathForAsarUnpack } from "electron-util";
 import { execa, ExecaChildProcess } from "execa";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const getRandomId = () => Math.random().toString(36).slice(2, 15);
 // Workaround for https://github.com/electron/electron/issues/9459
@@ -86,7 +82,7 @@ class ScreenCaptureKit {
     screenId = 0,
     audioDeviceId = undefined,
     videoCodec = "h264",
-  }: RecordingOptions = {}) {
+  }: Partial<RecordingOptions> = {}) {
     this.processId = getRandomId();
     return new Promise((resolve, reject) => {
       if (this.recorder !== undefined) {
