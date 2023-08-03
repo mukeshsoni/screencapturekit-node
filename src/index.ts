@@ -1,10 +1,10 @@
 import os from "node:os";
 import path from "node:path";
-import { temporaryFile } from "tempy";
-import { assertMacOSVersionGreaterThanOrEqualTo } from "macos-version";
+import tempy from "tempy";
+import macosVersion from "macos-version";
 import fileUrl from "file-url";
 // import { fixPathForAsarUnpack } from "electron-util";
-import { execa, ExecaChildProcess } from "execa";
+import execa, { ExecaChildProcess } from "execa";
 
 const getRandomId = () => Math.random().toString(36).slice(2, 15);
 // Workaround for https://github.com/electron/electron/issues/9459
@@ -65,7 +65,7 @@ class ScreenCaptureKit {
   processId: string | null = null;
 
   constructor() {
-    assertMacOSVersionGreaterThanOrEqualTo("10.13");
+    macosVersion.assertGreaterThanOrEqualTo("10.13");
   }
 
   throwIfNotStarted() {
@@ -90,7 +90,7 @@ class ScreenCaptureKit {
         return;
       }
 
-      this.videoPath = temporaryFile({ extension: "mp4" });
+      this.videoPath = tempy.file({ extension: "mp4" });
       const recorderOptions: RecordingOptionsForScreenCaptureKit = {
         destination: fileUrl(this.videoPath),
         framesPerSecond: fps,

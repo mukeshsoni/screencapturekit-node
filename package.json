@@ -41,12 +41,13 @@
   "dependencies": {
     "delay": "^6.0.0",
     "electron-util": "^0.14.2",
-    "execa": "^7.2.0",
-    "file-url": "^4.0.0",
-    "macos-version": "^6.0.0",
-    "tempy": "^3.1.0"
+    "execa": "^5.0.0",
+    "file-url": "^3.0.0",
+    "macos-version": "^5.2.1",
+    "tempy": "^1.0.0"
   },
   "devDependencies": {
+    "@types/execa": "^2.0.0",
     "@types/node": "^20.4.6",
     "file-type": "^18.5.0",
     "prettier": "^3.0.0",
